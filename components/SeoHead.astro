@@ -1,9 +1,15 @@
 ---
 import { SEO, type TwitterCardType } from "astro-seo";
 
+export interface Alternate {
+  href: string;
+  hreflang: string;
+}
+
 export interface Props {
   story?: any;
-  canonical?: { href?: string };
+  canonical?: { href?: string; hreflang?: string };
+  alternates?: Alternate[];
 
   // Optional overrides
   title?: string;
@@ -27,8 +33,6 @@ export interface Props {
   charset?: string;
   refresh?: string;
   viewport?: string;
-  alternate?: string;
-  canonicalUrl?: string;
   contentType?: string;
 
   icons?: { rel: string; href: string }[];
@@ -38,6 +42,7 @@ export interface Props {
 const {
   story,
   canonical,
+  alternates,
 
   title,
   titleDefault = "NFON",
@@ -60,8 +65,6 @@ const {
   charset,
   refresh,
   viewport,
-  alternate,
-  canonicalUrl,
   contentType,
 
   icons,
@@ -96,12 +99,11 @@ const seo = {
   charset: pick(charset, ai["advanced:charset"], undefined, "utf-8"),
   refresh: pick(refresh, ai["advanced:refresh"]),
   viewport: pick(viewport, ai["advanced:viewport"], undefined, "width=device-width, initial-scale=1"),
-  alternate: pick(alternate, ai["advanced:alternate"]),
-  canonical: pick(canonicalUrl, ai["advanced:canonical"], canonical?.href),
+  canonical: pick(canonical?.href, ai["advanced:canonical"], canonical?.href),
   contentType: pick(contentType, ai["advanced:content-type"], undefined, "text/html; charset=utf-8"),
 };
 
-// Build meta array
+// Meta array
 const meta: Partial<import("astro-seo").Meta>[] = [];
 if (seo.keywords) meta.push({ name: "keywords", content: seo.keywords });
 if (seo.robots) meta.push({ name: "robots", content: seo.robots });
@@ -109,8 +111,8 @@ if (seo.contentType) meta.push({ httpEquiv: "Content-Type", content: seo.content
 if (seo.refresh) meta.push({ httpEquiv: "refresh", content: seo.refresh });
 if (seo.viewport) meta.push({ name: "viewport", content: seo.viewport });
 
-// Build link array
-const link: { rel: string; href: string }[] = [];
+// Link array
+const link: { rel: string; href: string; hreflang?: string }[] = [];
 if (icons) link.push(...icons);
 else {
   link.push(
@@ -120,8 +122,14 @@ else {
   );
 }
 if (sitemap) link.push({ rel: "sitemap", href: sitemap });
+
+// Alternates
+if (alternates && alternates.length > 0) {
+  alternates.forEach((alt) => link.push({ rel: "alternate", href: alt.href, hreflang: alt.hreflang }));
+}
+
+// Canonical
 if (seo.canonical) link.push({ rel: "canonical", href: seo.canonical });
-if (seo.alternate) link.push({ rel: "alternate", href: seo.alternate });
 ---
 
 <SEO
