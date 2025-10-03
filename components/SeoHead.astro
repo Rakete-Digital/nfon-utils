@@ -2,7 +2,10 @@
 import { SEO, type TwitterCardType } from "astro-seo";
 
 export interface Props {
-  // General
+  story?: any;
+  canonical?: { href?: string };
+
+  // Optional overrides
   title?: string;
   titleDefault?: string;
   description?: string;
@@ -11,39 +14,38 @@ export interface Props {
   url?: string;
   noindex?: boolean;
 
-  // OpenGraph
   ogTitle?: string;
   ogDescription?: string;
   ogImage?: string;
 
-  // Twitter
   twitterTitle?: string;
   twitterDescription?: string;
   twitterImage?: string;
   twitterCard?: TwitterCardType;
 
-  // Advanced
   robots?: string;
   charset?: string;
   refresh?: string;
   viewport?: string;
   alternate?: string;
-  canonical?: string;
+  canonicalUrl?: string;
   contentType?: string;
 
-  // Links/icons
   icons?: { rel: string; href: string }[];
   sitemap?: string;
 }
 
 const {
+  story,
+  canonical,
+
   title,
-  titleDefault = "NFON Blog",
+  titleDefault = "NFON",
   description,
   keywords,
   author,
   url,
-  noindex = false,
+  noindex,
 
   ogTitle,
   ogDescription,
@@ -52,66 +54,106 @@ const {
   twitterTitle,
   twitterDescription,
   twitterImage,
-  twitterCard = "summary_large_image",
+  twitterCard,
 
   robots,
-  charset = "utf-8",
+  charset,
   refresh,
-  viewport = "width=device-width, initial-scale=1",
+  viewport,
   alternate,
-  canonical,
-  contentType = "text/html; charset=utf-8",
+  canonicalUrl,
+  contentType,
 
-  icons = [
+  icons,
+  sitemap,
+} = Astro.props;
+
+// Storyblok fallbacks
+const c = story?.content || {};
+const ai = c.seo_plugin || {};
+
+const pick = (prop?: string, aiValue?: string, cValue?: string, fallback?: string) =>
+  prop ?? (aiValue && aiValue.trim() !== "" ? aiValue : cValue || fallback || undefined);
+
+const seo = {
+  title: pick(title, ai.title, c.Title || story?.name),
+  description: pick(description, ai.description, c.description),
+  keywords: pick(keywords, ai.keywords, c.keywords),
+  noindex: noindex ?? c.noindex ?? false,
+  author: pick(author, ai.author, c.author),
+  url: pick(url, ai["og:url"], canonical?.href),
+
+  ogTitle: pick(ogTitle, ai["og:title"], c.og_title || c.Title || story?.name),
+  ogDescription: pick(ogDescription, ai["og:description"], c.og_description || c.description),
+  ogImage: pick(ogImage, ai["og:image"], c.og_image?.filename),
+
+  twitterTitle: pick(twitterTitle, ai["twitter:title"], c.Title || story?.name),
+  twitterDescription: pick(twitterDescription, ai["twitter:description"], c.description),
+  twitterImage: pick(twitterImage, ai["twitter:image"], c.og_image?.filename),
+  twitterCard: twitterCard ?? (ai["twitter:card"] as TwitterCardType) ?? "summary_large_image",
+
+  robots: pick(robots, ai["advanced:robots"]),
+  charset: pick(charset, ai["advanced:charset"], undefined, "utf-8"),
+  refresh: pick(refresh, ai["advanced:refresh"]),
+  viewport: pick(viewport, ai["advanced:viewport"], undefined, "width=device-width, initial-scale=1"),
+  alternate: pick(alternate, ai["advanced:alternate"]),
+  canonical: pick(canonicalUrl, ai["advanced:canonical"], canonical?.href),
+  contentType: pick(contentType, ai["advanced:content-type"], undefined, "text/html; charset=utf-8"),
+};
+
+// Build meta array
+const meta: Partial<import("astro-seo").Meta>[] = [];
+if (seo.keywords) meta.push({ name: "keywords", content: seo.keywords });
+if (seo.robots) meta.push({ name: "robots", content: seo.robots });
+if (seo.contentType) meta.push({ httpEquiv: "Content-Type", content: seo.contentType });
+if (seo.refresh) meta.push({ httpEquiv: "refresh", content: seo.refresh });
+if (seo.viewport) meta.push({ name: "viewport", content: seo.viewport });
+
+// Build link array
+const link: { rel: string; href: string }[] = [];
+if (icons) link.push(...icons);
+else {
+  link.push(
     { rel: "icon", href: "/assets/favicon.png" },
     { rel: "apple-touch-icon", href: "/assets/logo-nfon.svg" },
-    { rel: "msapplication-TileImage", href: "/assets/logo-nfon.svg" },
-  ],
-  sitemap = "/sitemap-index.xml",
-} = Astro.props;
+    { rel: "msapplication-TileImage", href: "/assets/logo-nfon.svg" }
+  );
+}
+if (sitemap) link.push({ rel: "sitemap", href: sitemap });
+if (seo.canonical) link.push({ rel: "canonical", href: seo.canonical });
+if (seo.alternate) link.push({ rel: "alternate", href: seo.alternate });
 ---
 
 <SEO
   titleDefault={titleDefault}
-  title={title}
-  description={description}
-  charset={charset}
+  title={seo.title}
+  description={seo.description}
+  charset={seo.charset}
   openGraph={{
     basic: {
-      title: ogTitle || title || "",
+      title: seo.ogTitle || "",
       type: "website",
-      image: ogImage || "",
-      url: url || "",
+      image: seo.ogImage || "",
+      url: seo.url || "",
     },
     image: {
-      alt: ogTitle || title,
+      alt: seo.ogTitle || seo.title,
       height: 1920,
       width: 2400,
-      url: ogImage,
+      url: seo.ogImage,
     },
     article: {
-      authors: author ? [author] : [],
+      authors: seo.author ? [seo.author] : [],
     },
   }}
   twitter={{
-    card: twitterCard,
-    title: twitterTitle || title,
-    description: twitterDescription || description,
-    image: twitterImage || ogImage,
+    card: seo.twitterCard,
+    title: seo.twitterTitle,
+    description: seo.twitterDescription,
+    image: seo.twitterImage,
   }}
   extend={{
-    link: [
-      ...icons,
-      sitemap && { rel: "sitemap", href: sitemap },
-      canonical && { rel: "canonical", href: canonical },
-      alternate && { rel: "alternate", href: alternate },
-    ].filter(Boolean),
-    meta: [
-      keywords && { name: "keywords", content: keywords },
-      robots && { name: "robots", content: robots },
-      contentType && { httpEquiv: "Content-Type", content: contentType },
-      refresh && { httpEquiv: "refresh", content: refresh },
-      viewport && { name: "viewport", content: viewport },
-    ].filter(Boolean),
+    link,
+    meta,
   }}
 />
