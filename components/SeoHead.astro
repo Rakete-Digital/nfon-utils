@@ -1,0 +1,117 @@
+---
+import { SEO, type TwitterCardType } from "astro-seo";
+
+export interface Props {
+  // General
+  title?: string;
+  titleDefault?: string;
+  description?: string;
+  keywords?: string;
+  author?: string;
+  url?: string;
+  noindex?: boolean;
+
+  // OpenGraph
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
+
+  // Twitter
+  twitterTitle?: string;
+  twitterDescription?: string;
+  twitterImage?: string;
+  twitterCard?: TwitterCardType;
+
+  // Advanced
+  robots?: string;
+  charset?: string;
+  refresh?: string;
+  viewport?: string;
+  alternate?: string;
+  canonical?: string;
+  contentType?: string;
+
+  // Links/icons
+  icons?: { rel: string; href: string }[];
+  sitemap?: string;
+}
+
+const {
+  title,
+  titleDefault = "NFON Blog",
+  description,
+  keywords,
+  author,
+  url,
+  noindex = false,
+
+  ogTitle,
+  ogDescription,
+  ogImage,
+
+  twitterTitle,
+  twitterDescription,
+  twitterImage,
+  twitterCard = "summary_large_image",
+
+  robots,
+  charset = "utf-8",
+  refresh,
+  viewport = "width=device-width, initial-scale=1",
+  alternate,
+  canonical,
+  contentType = "text/html; charset=utf-8",
+
+  icons = [
+    { rel: "icon", href: "/assets/favicon.png" },
+    { rel: "apple-touch-icon", href: "/assets/logo-nfon.svg" },
+    { rel: "msapplication-TileImage", href: "/assets/logo-nfon.svg" },
+  ],
+  sitemap = "/sitemap-index.xml",
+} = Astro.props;
+---
+
+<SEO
+  titleDefault={titleDefault}
+  title={title}
+  description={description}
+  charset={charset}
+  openGraph={{
+    basic: {
+      title: ogTitle || title || "",
+      type: "website",
+      image: ogImage || "",
+      url: url || "",
+    },
+    image: {
+      alt: ogTitle || title,
+      height: 1920,
+      width: 2400,
+      url: ogImage,
+    },
+    article: {
+      authors: author ? [author] : [],
+    },
+  }}
+  twitter={{
+    card: twitterCard,
+    title: twitterTitle || title,
+    description: twitterDescription || description,
+    image: twitterImage || ogImage,
+  }}
+  extend={{
+    link: [
+      ...icons,
+      sitemap && { rel: "sitemap", href: sitemap },
+      canonical && { rel: "canonical", href: canonical },
+      alternate && { rel: "alternate", href: alternate },
+    ].filter(Boolean),
+    meta: [
+      keywords && { name: "keywords", content: keywords },
+      robots && { name: "robots", content: robots },
+      contentType && { httpEquiv: "Content-Type", content: contentType },
+      refresh && { httpEquiv: "refresh", content: refresh },
+      viewport && { name: "viewport", content: viewport },
+    ].filter(Boolean),
+  }}
+/>

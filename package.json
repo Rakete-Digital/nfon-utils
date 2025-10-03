@@ -8,5 +8,8 @@
         "astro",
         "storyblok"
     ],
-    "author": "NFON"
+    "author": "NFON",
+    "dependencies": {
+        "astro-seo": "^0.8.4"
+    }
 }
