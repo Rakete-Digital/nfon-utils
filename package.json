@@ -1,0 +1,12 @@
+{
+    "name": "nfon-utils",
+    "version": "1.0.0",
+    "description": "A collection of helper functions and components for working with Astro and Storyblok",
+    "main": "index.js",
+    "keywords": [
+        "nfon",
+        "astro",
+        "storyblok"
+    ],
+    "author": "NFON"
+}
