@@ -1,0 +1,15 @@
+# dependencies
+/node_modules
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# build output
+/dist
+/build
+/coverage
+
+# system
+.DS_Store
+*.swp
