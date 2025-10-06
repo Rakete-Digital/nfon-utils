@@ -1,5 +1,4 @@
-import { facebookIcon, twitterIcon, youtubeIcon, instagramIcon, linkedInIcon } from "..";
-
+import { linkedInIcon, facebookIcon, twitterIcon, youtubeIcon, instagramIcon } from "./socialSvgIcons";
 
 function getSocialIcon(link) {
     if (link.includes("linkedin.com")) {
