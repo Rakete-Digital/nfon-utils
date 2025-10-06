@@ -12,3 +12,4 @@ export { default as isSVG } from "./functions/isSVG";
 export { default as fetchSVG } from "./functions/fetchSVG";
 export { default as displaySVG } from "./functions/displaySVG";
 export { default as getContrastColor } from "./functions/getContrastColor";
+export { default as croppedSVG } from "./functions/croppedSVG";
