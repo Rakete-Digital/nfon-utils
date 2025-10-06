@@ -5,3 +5,9 @@ export { default as SeoHead } from "./components/SeoHead.astro";
 export { default as darkenColor } from "./functions/darkenColor";
 export { default as trimText } from "./functions/trimText";
 export { default as transformAsset } from "./functions/transformAsset";
+
+// Icons
+export { default as facebookIcon } from "./functions/socialSvgIcons";
+export { default as instagramIcon } from "./functions/socialSvgIcons";
+export { default as twitterIcon } from "./functions/socialSvgIcons";
+export { default as youtubeIcon } from "./functions/socialSvgIcons";
