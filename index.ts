@@ -14,3 +14,4 @@ export { default as displaySVG } from "./functions/displaySVG";
 export { default as getContrastColor } from "./functions/getContrastColor";
 export { default as croppedSVG } from "./functions/croppedSVG";
 export { default as extractPlainTextFromRichText } from "./functions/extractPlainTextFromRichText";
+export { default as languageFormat } from "./functions/languageFormat";
