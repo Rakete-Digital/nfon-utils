@@ -1,4 +1,4 @@
-const darkenColor = (color, percent) => {
+const darkenColor = (color: string, percent: number): string | undefined => {
   if (!color) return;
   let num = parseInt(color.replace("#", ""), 16),
     amt = Math.round(2.55 * percent),
