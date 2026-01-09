@@ -40,6 +40,8 @@ export interface Props {
 }
 
 const {
+  isBlog = false,
+
   story,
   canonical,
   alternates,
@@ -130,11 +132,13 @@ if (alternates && alternates.length > 0) {
 
 // Canonical
 if (seo.canonical) link.push({ rel: "canonical", href: seo.canonical });
+
+const pageTitle = isBlog ? `NFON Blog | ${seo.title}` : seo.title || titleDefault; 
 ---
 
 <SEO
   titleDefault={titleDefault}
-  title={seo.title}
+  title={pageTitle}
   description={seo.description}
   charset={seo.charset}
   openGraph={{
@@ -145,7 +149,7 @@ if (seo.canonical) link.push({ rel: "canonical", href: seo.canonical });
       url: seo.url || "",
     },
     image: {
-      alt: seo.ogTitle || seo.title,
+      alt: seo.ogTitle || pageTitle,
       height: 1920,
       width: 2400,
       url: seo.ogImage,
