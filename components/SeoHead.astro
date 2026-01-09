@@ -7,6 +7,8 @@ export interface Alternate {
 }
 
 export interface Props {
+  isBlog?: boolean;
+  
   story?: any;
   canonical?: { href?: string; hreflang?: string };
   alternates?: Alternate[];
