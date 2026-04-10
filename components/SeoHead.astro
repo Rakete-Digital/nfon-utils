@@ -79,32 +79,33 @@ const {
 const c = story?.content || {};
 const ai = c.seo_plugin || {};
 
-const pick = (prop?: string, aiValue?: string, cValue?: string, fallback?: string) =>
-  prop ?? (aiValue && aiValue.trim() !== "" ? aiValue : cValue || fallback || undefined);
+const pick = (...values: (string | undefined)[]) =>
+  values.find((v) => v && v.trim() !== "");
 
 const seo = {
-  title: pick(title, ai.title, c.Title || story?.name),
-  description: pick(description, ai.description, c.description),
-  keywords: pick(keywords, ai.keywords, c.keywords),
+  title: pick(c.title || c.Title, ai.title, story?.name, title),
+
+  description: pick(c.description, ai.description, description),
+  keywords: pick(c.keywords, ai.keywords, keywords),
   noindex: noindex ?? c.noindex ?? false,
-  author: pick(author, ai.author, c.author),
-  url: pick(url, ai["og:url"], canonical?.href),
+  author: pick(c.author, ai.author, author),
+  url: pick(canonical?.href, ai["og:url"], url),
 
-  ogTitle: pick(ogTitle, ai["og:title"], c.og_title || c.Title || story?.name),
-  ogDescription: pick(ogDescription, ai["og:description"], c.og_description || c.description),
-  ogImage: pick(ogImage, ai["og:image"], c.og_image?.filename),
+  ogTitle: pick(c.title || c.Title, c.og_title, ai["og:title"], story?.name, ogTitle),
+  ogDescription: pick(c.description, c.og_description, ai["og:description"], ogDescription),
+  ogImage: pick(c.og_image?.filename, ai["og:image"], ogImage),
 
-  twitterTitle: pick(twitterTitle, ai["twitter:title"], c.Title || story?.name),
-  twitterDescription: pick(twitterDescription, ai["twitter:description"], c.description),
-  twitterImage: pick(twitterImage, ai["twitter:image"], c.og_image?.filename),
+  twitterTitle: pick(c.title || c.Title, ai["twitter:title"], story?.name, twitterTitle),
+  twitterDescription: pick(c.description, ai["twitter:description"], twitterDescription),
+  twitterImage: pick(c.og_image?.filename, ai["twitter:image"], twitterImage),
   twitterCard: twitterCard ?? (ai["twitter:card"] as TwitterCardType) ?? "summary_large_image",
 
-  robots: pick(robots, ai["advanced:robots"]),
-  charset: pick(charset, ai["advanced:charset"], undefined, "utf-8"),
-  refresh: pick(refresh, ai["advanced:refresh"]),
-  viewport: pick(viewport, ai["advanced:viewport"], undefined, "width=device-width, initial-scale=1"),
-  canonical: pick(canonical?.href, ai["advanced:canonical"], canonical?.href),
-  contentType: pick(contentType, ai["advanced:content-type"], undefined, "text/html; charset=utf-8"),
+  robots: pick(ai["advanced:robots"], robots),
+  charset: pick(ai["advanced:charset"], charset, "utf-8"),
+  refresh: pick(ai["advanced:refresh"], refresh),
+  viewport: pick(ai["advanced:viewport"], viewport, "width=device-width, initial-scale=1"),
+  canonical: pick(canonical?.href, ai["advanced:canonical"]),
+  contentType: pick(ai["advanced:content-type"], contentType, "text/html; charset=utf-8"),
 };
 
 // Meta array
