@@ -8,12 +8,11 @@ export interface Alternate {
 
 export interface Props {
   isBlog?: boolean;
-  
+
   story?: any;
   canonical?: { href?: string; hreflang?: string };
   alternates?: Alternate[];
 
-  // Optional overrides
   title?: string;
   titleDefault?: string;
   description?: string;
@@ -75,40 +74,42 @@ const {
   sitemap,
 } = Astro.props;
 
-// Storyblok fallbacks
 const c = story?.content || {};
-const ai = c.seo_plugin || {};
+const ai = c.ai_seo || {};
 
+// first non-empty value wins
 const pick = (...values: (string | undefined)[]) =>
   values.find((v) => v && v.trim() !== "");
 
+// SEO config
 const seo = {
-  title: pick(c.title || c.Title, ai.title, story?.name, title),
+  // SEO TITLE: AI SEO → OG → Content → fallback
+  title: pick(ai.title, c.og_title, c.title, c.Title, story?.name, title),
 
-  description: pick(c.description, ai.description, description),
-  keywords: pick(c.keywords, ai.keywords, keywords),
+  description: pick(ai.description, c.description, description),
+  keywords: pick(ai.keywords, c.keywords, keywords),
   noindex: noindex ?? c.noindex ?? false,
-  author: pick(c.author, ai.author, author),
-  url: pick(canonical?.href, ai["og:url"], url),
+  author: pick(ai.author, c.author, author),
+  url: pick(ai["og:url"], canonical?.href, url),
 
-  ogTitle: pick(c.title || c.Title, c.og_title, ai["og:title"], story?.name, ogTitle),
-  ogDescription: pick(c.description, c.og_description, ai["og:description"], ogDescription),
+  ogTitle: pick(c.og_title, ai["og:title"], ai.title, c.title, c.Title, story?.name, ogTitle),
+  ogDescription: pick(c.og_description, ai["og:description"], c.description, ogDescription),
   ogImage: pick(c.og_image?.filename, ai["og:image"], ogImage),
 
-  twitterTitle: pick(c.title || c.Title, ai["twitter:title"], story?.name, twitterTitle),
-  twitterDescription: pick(c.description, ai["twitter:description"], twitterDescription),
-  twitterImage: pick(c.og_image?.filename, ai["twitter:image"], twitterImage),
-  twitterCard: twitterCard ?? (ai["twitter:card"] as TwitterCardType) ?? "summary_large_image",
+  twitterTitle: pick(ai["twitter:title"], ai.title, c.og_title, c.title, c.Title, story?.name, twitterTitle),
+  twitterDescription: pick(ai["twitter:description"], c.description, twitterDescription),
+  twitterImage: pick(ai["twitter:image"], c.og_image?.filename, twitterImage),
+  twitterCard: pick(ai["twitter:card"], twitterCard, "summary_large_image") as TwitterCardType,
 
   robots: pick(ai["advanced:robots"], robots),
   charset: pick(ai["advanced:charset"], charset, "utf-8"),
   refresh: pick(ai["advanced:refresh"], refresh),
   viewport: pick(ai["advanced:viewport"], viewport, "width=device-width, initial-scale=1"),
-  canonical: pick(canonical?.href, ai["advanced:canonical"]),
+  canonical: pick(ai["advanced:canonical"], canonical?.href),
   contentType: pick(ai["advanced:content-type"], contentType, "text/html; charset=utf-8"),
 };
 
-// Meta array
+// meta tags
 const meta: Partial<import("astro-seo").Meta>[] = [];
 if (seo.keywords) meta.push({ name: "keywords", content: seo.keywords });
 if (seo.robots) meta.push({ name: "robots", content: seo.robots });
@@ -116,27 +117,37 @@ if (seo.contentType) meta.push({ httpEquiv: "Content-Type", content: seo.content
 if (seo.refresh) meta.push({ httpEquiv: "refresh", content: seo.refresh });
 if (seo.viewport) meta.push({ name: "viewport", content: seo.viewport });
 
-// Link array
+// link tags
 const link: { rel: string; href: string; hreflang?: string }[] = [];
-if (icons) link.push(...icons);
-else {
+
+if (icons) {
+  link.push(...icons);
+} else {
   link.push(
     { rel: "icon", href: "/assets/favicon.png" },
     { rel: "apple-touch-icon", href: "/assets/logo-nfon.svg" },
     { rel: "msapplication-TileImage", href: "/assets/logo-nfon.svg" }
   );
 }
+
 if (sitemap) link.push({ rel: "sitemap", href: sitemap });
 
-// Alternates
-if (alternates && alternates.length > 0) {
-  alternates.forEach((alt) => link.push({ rel: "alternate", href: alt.href, hreflang: alt.hreflang }));
+// alternates
+if (alternates?.length) {
+  alternates.forEach((alt) =>
+    link.push({ rel: "alternate", href: alt.href, hreflang: alt.hreflang })
+  );
 }
 
-// Canonical
-if (seo.canonical) link.push({ rel: "canonical", href: seo.canonical });
+// canonical
+if (seo.canonical) {
+  link.push({ rel: "canonical", href: seo.canonical });
+}
 
-const pageTitle = isBlog ? `NFON Blog | ${seo.title}` : seo.title || titleDefault; 
+// final page title
+const pageTitle = isBlog
+  ? `NFON Blog | ${seo.title}`
+  : seo.title || titleDefault;
 ---
 
 <SEO
